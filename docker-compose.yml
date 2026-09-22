@@ -1,0 +1,40 @@
+# Local-only development database.
+# Per the build plan: no cloud database is provisioned. DATABASE_URL is the only switch.
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: veggie-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: veggie
+      POSTGRES_PASSWORD: veggie_local_dev
+      POSTGRES_DB: veggie
+    ports:
+      - "5435:5432"
+    volumes:
+      - veggie-pgdata:/var/lib/postgresql/data
+      - ./scripts/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veggie -d veggie"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # S3-compatible object storage, so no code path ever writes to the runtime filesystem.
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: veggie-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: veggie
+      MINIO_ROOT_PASSWORD: veggie_local_dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - veggie-miniodata:/data
+
+volumes:
+  veggie-pgdata:
+  veggie-miniodata:

@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "veggie-web-app",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  // nodejs_compat is required: the app uses node: APIs (postgres.js driver,
+  // Auth.js) that Workers only provides under this flag.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  }
+  // Note: this config exists so the portability BUILD can run in CI. It is not
+  // a deployment. Before any real Cloudflare deploy this needs a Hyperdrive
+  // binding for DATABASE_URL and an R2 bucket for uploads.
+}

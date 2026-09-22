@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DATABASE_URL: postgresql://veggie:veggie_local_dev@localhost:5432/veggie
+  AUTH_SECRET: ci-only-secret-value-at-least-32-characters-long
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: veggie
+          POSTGRES_PASSWORD: veggie_local_dev
+          POSTGRES_DB: veggie
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U veggie -d veggie"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Enable required Postgres extensions
+        run: |
+          PGPASSWORD=veggie_local_dev psql -h localhost -U veggie -d veggie \
+            -c 'CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS citext;'
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+      # Migrations must apply to an empty database, not just to a dev machine
+      # that has drifted into the right shape.
+      - name: Apply migrations from scratch
+        run: npm run db:migrate
+
+      - run: npm run build
+
+      # Portability guard. Build only, never a deploy. A failure here means a
+      # native module, an fs call or a Node global crept in and the
+      # Render-or-Cloudflare decision has silently been made for us.
+      - name: Cloudflare portability build
+        run: npm run build:cloudflare
