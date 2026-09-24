@@ -16,7 +16,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:reset": "docker compose down -v && docker compose up -d && sleep 6 && npm run db:migrate",
+    "db:seed": "tsx scripts/db/seed.ts",
+    "db:reset": "docker compose down -v && docker compose up -d && sleep 6 && npm run db:migrate && npm run db:seed",
     "build:cloudflare": "opennextjs-cloudflare build"
   },
   "dependencies": {

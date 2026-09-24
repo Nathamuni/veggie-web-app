@@ -68,7 +68,7 @@ export function LocationPicker({
         <label htmlFor="loc-city" className="mb-1.5 block text-[0.8125rem] font-medium">
           City <span className="text-rust">*</span>
         </label>
-        <select id="loc-city" required value={city} onChange={(e) => chooseCity(e.target.value)} className={field}>
+        <select id="loc-city" name="city" required value={city} onChange={(e) => chooseCity(e.target.value)} className={field}>
           {states.map((s) => (
             <optgroup key={s} label={s}>
               {cities
@@ -87,7 +87,7 @@ export function LocationPicker({
         <label htmlFor="loc-area" className="mb-1.5 block text-[0.8125rem] font-medium">
           Area <span className="text-rust">*</span>
         </label>
-        <select id="loc-area" required value={area} onChange={(e) => setArea(e.target.value)} className={field}>
+        <select id="loc-area" name="area" required value={area} onChange={(e) => setArea(e.target.value)} className={field}>
           {areas.map((a) => (
             <option key={a} value={a}>
               {a}
@@ -100,7 +100,9 @@ export function LocationPicker({
             <span className="text-[0.8125rem] font-medium">Your area in {city}</span>
             <input
               type="text"
+              name="areaOther"
               required
+              maxLength={80}
               value={otherArea}
               onChange={(e) => setOtherArea(e.target.value)}
               placeholder="e.g. Kolathur"

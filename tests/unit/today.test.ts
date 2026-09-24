@@ -47,3 +47,36 @@ describe('mealSlotForHour', () => {
     expect([7, 12, 19].map(mealSlotForHour)).toEqual(['breakfast', 'lunch', 'dinner'])
   })
 })
+
+describe('rankPicks learning signals', () => {
+  const a = item({ id: 'a', cuisine: 'Tamil' })
+  const b = item({ id: 'b', cuisine: 'Kerala' })
+
+  it('skips recently eaten dishes for variety', () => {
+    const picks = rankPicks([a, b], profile, 'lunch', false, 3, { recentRecipes: new Set(['a']) })
+    expect(picks.map((p) => p.item.id)).toEqual(['b'])
+  })
+
+  it('still suggests something when everything was eaten recently', () => {
+    const picks = rankPicks([a], profile, 'lunch', false, 3, { recentRecipes: new Set(['a']) })
+    expect(picks).toHaveLength(1)
+  })
+
+  it('sinks a thumbs-down dish below an unrated one', () => {
+    const picks = rankPicks([a, b], profile, 'lunch', false, 3, { dislikedRecipes: new Set(['a']) })
+    expect(picks[0].item.id).toBe('b')
+  })
+
+  it('explains a thumbs-up dish', () => {
+    const picks = rankPicks([a, b], profile, 'lunch', false, 3, { likedRecipes: new Set(['b']) })
+    expect(picks.find((p) => p.item.id === 'b')?.reasons).toContain('You gave this a thumbs up last time')
+  })
+
+  it('lifts cuisines the user keeps liking', () => {
+    const plain = item({ id: 'p', cuisine: 'Punjabi' })
+    const other = item({ id: 'q', cuisine: 'Bengali' })
+    const picks = rankPicks([plain, other], profile, 'lunch', false, 3, { cuisineAffinity: { Bengali: 2 } })
+    expect(picks[0].item.id).toBe('q')
+  })
+})
+

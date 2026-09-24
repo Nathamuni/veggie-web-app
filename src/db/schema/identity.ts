@@ -137,3 +137,24 @@ export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Consent = typeof consents.$inferSelect
 export type AuditLog = typeof auditLogs.$inferSelect
+
+/**
+ * Server-side sessions. The browser holds a random token in an httpOnly
+ * cookie; only its SHA-256 is stored, so a leaked table cannot be replayed.
+ * Deleting the row signs the device out immediately.
+ */
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: uuid().primaryKey().default(sql`gen_random_uuid()`),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().default(now),
+  },
+  (table) => [uniqueIndex('sessions_token_hash_key').on(table.tokenHash), index('sessions_user_idx').on(table.userId)],
+)
+
+export type Session = typeof sessions.$inferSelect

@@ -31,6 +31,16 @@ export type PickProfile = {
 
 export type Pick = { item: PickInput; score: number; reasons: string[] }
 
+/** What the user has told us by eating and rating — the part that learns. */
+export type PickSignals = {
+  likedRecipes?: ReadonlySet<string>
+  dislikedRecipes?: ReadonlySet<string>
+  /** Cooked or eaten in the last few days — skipped so the pick doesn't repeat. */
+  recentRecipes?: ReadonlySet<string>
+  /** Net thumbs (up − down) per cuisine. */
+  cuisineAffinity?: Readonly<Record<string, number>>
+}
+
 // Sub-regional cuisines count as the region a user picked (Chettinad is Tamil).
 const CUISINE_FAMILY: Record<string, string> = { Chettinad: 'Tamil' }
 
@@ -51,9 +61,12 @@ export function rankPicks(
   slot: MealSlot,
   isWeekend: boolean,
   limit = 3,
+  signals: PickSignals = {},
 ): Pick[] {
-  return items
-    .filter((item) => passesDietFilter(item, profile))
+  const eligible = items.filter((item) => passesDietFilter(item, profile))
+  // Variety: drop recent dishes, unless that would leave nothing to suggest.
+  const fresh = eligible.filter((item) => !signals.recentRecipes?.has(item.id))
+  return (fresh.length > 0 ? fresh : eligible)
     .map((item) => {
       const reasons: { weight: number; text: string }[] = []
       let score = item.satisfactionAvg * 6 // satisfaction leads (PRD §7.2, 30%)
@@ -75,15 +88,22 @@ export function rankPicks(
       }
       if (item.spice === profile.spice) {
         score += 5
-        reasons.push({ weight: 6, text: `${item.spice[0].toUpperCase()}${item.spice.slice(1)}, the way you like it` })
+        reasons.push({ weight: 5, text: `${item.spice[0].toUpperCase()}${item.spice.slice(1)}, the way you like it` })
       }
       // Long weekend dishes don't suit a weekday meal; quick ones suit breakfast.
       if (!isWeekend && item.tags.includes('Weekend')) score -= 8
       if (slot === 'breakfast' && item.tags.includes('Quick')) score += 4
-      if (item.satisfactionAvg >= 4.4) {
+      if (signals.likedRecipes?.has(item.id)) {
+        score += 8
+        reasons.push({ weight: 12, text: 'You gave this a thumbs up last time' })
+      }
+      if (signals.dislikedRecipes?.has(item.id)) score -= 30
+      const affinity = signals.cuisineAffinity?.[item.cuisine] ?? 0
+      score += Math.max(-9, Math.min(9, affinity * 3))
+      if (item.satisfactionCount >= 5 && item.satisfactionAvg >= 4.4) {
         reasons.push({
           weight: 8,
-          text: `Rated ${item.satisfactionAvg}/5 by ${item.satisfactionCount} diners who switched`,
+          text: `Rated ${item.satisfactionAvg.toFixed(1)}/5 by ${item.satisfactionCount} Veggie cooks`,
         })
       }
 
