@@ -2,46 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ModeTag } from "@/components/ui/ModeTag";
-import { user } from "@/lib/fixtures";
+import type { DietMode } from "@/lib/fixtures";
 
-// PRD §4.1 desktop navigation: Home, Discover, Recipes, Progress, Learn, plus a
-// prominent Log Meal action; secondary tools sit below, context controls at the foot.
+// Same five destinations as the phone tab bar, so the app has one map on every screen.
 const primary = [
-  { href: "/app", label: "Home" },
-  { href: "/app/discover", label: "Discover" },
+  { href: "/app", label: "Today" },
   { href: "/app/recipes", label: "Recipes" },
+  { href: "/app/discover", label: "Eat out" },
   { href: "/app/progress", label: "Progress" },
-  { href: "/app/learn", label: "Learn" },
-];
-
-const secondary = [
-  { href: "/app/transition", label: "Transition centre" },
-  { href: "/app/transition/craving", label: "I'm craving…" },
-  { href: "/app/complete-meal", label: "Complete my meal" },
-  { href: "/app/nutrition", label: "Nutrition" },
-  { href: "/app/impact", label: "Animal impact" },
-  { href: "/app/pantry", label: "Pantry" },
-  { href: "/app/meal-plan", label: "Meal plan" },
-  { href: "/app/shopping-list", label: "Shopping list" },
-  { href: "/app/assistant", label: "Ask Veggie" },
 ];
 
 function isActive(pathname: string, href: string) {
   if (href === "/app") return pathname === "/app";
-  if (href === "/app/transition") return pathname === "/app/transition";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavLink({ href, label, pathname, strong }: { href: string; label: string; pathname: string; strong?: boolean }) {
+function NavLink({ href, label, pathname }: { href: string; label: string; pathname: string }) {
   const active = isActive(pathname, href);
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-[4px] border px-3 py-1.5 transition-colors ${
-        strong ? "text-[0.9375rem]" : "text-[0.875rem]"
-      } ${
+      className={`flex min-h-10 items-center gap-2 rounded-[4px] border px-3 py-1.5 text-[0.9375rem] transition-colors ${
         active
           ? "border-hairline bg-surface font-semibold text-ink"
           : "border-transparent text-ink-soft hover:bg-surface hover:text-ink"
@@ -52,12 +34,12 @@ function NavLink({ href, label, pathname, strong }: { href: string; label: strin
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ name, area, dietMode }: { name: string; area: string | null; dietMode: DietMode }) {
   const pathname = usePathname() ?? "";
   return (
     <aside
       aria-label="Main"
-      className="sticky top-0 hidden max-h-dvh flex-col self-start overflow-y-auto border-r border-hairline bg-paper px-4 py-5 lg:flex lg:min-h-full"
+      className="sticky top-0 hidden max-h-dvh flex-col self-start overflow-y-auto border-r border-hairline bg-paper px-4 py-5 lg:flex lg:min-h-dvh"
     >
       <Link href="/app" className="px-3 text-[1.25rem] font-semibold tracking-tight">
         Veggie
@@ -65,39 +47,43 @@ export function Sidebar() {
 
       <Link
         href="/app/log"
-        className="mt-5 inline-flex items-center justify-center gap-2 rounded-[4px] bg-ink px-4 py-2.5 text-[0.9375rem] font-semibold text-surface transition-colors hover:bg-ink-soft"
+        className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-[4px] bg-turmeric px-4 py-2.5 text-[0.9375rem] font-semibold text-surface transition-colors hover:bg-turmeric-deep"
       >
-        <span aria-hidden>+</span> Log a meal
+        <span aria-hidden>＋</span> Log a meal
       </Link>
 
       <nav aria-label="Primary" className="mt-5 flex flex-col gap-0.5">
         {primary.map((i) => (
-          <NavLink key={i.href} {...i} pathname={pathname} strong />
-        ))}
-      </nav>
-
-      <p className="mt-5 px-3 font-mono text-[0.625rem] uppercase tracking-wide text-ink-soft">Tools</p>
-      <nav aria-label="Tools" className="mt-1 flex flex-col gap-0.5">
-        {secondary.map((i) => (
           <NavLink key={i.href} {...i} pathname={pathname} />
         ))}
       </nav>
 
       <div className="mt-auto border-t border-hairline pt-4">
-        <div className="flex items-center justify-between gap-2 px-3">
-          <Link
-            href="/app/settings#location"
-            className="truncate font-mono text-[0.75rem] text-ink-soft hover:text-ink"
-            title={`${user.area}, ${user.city}`}
-          >
-            {user.area}
-          </Link>
-          <Link href="/app/settings#diet-mode" aria-label="Diet mode. Change in settings">
-            <ModeTag mode={user.dietMode} />
-          </Link>
-        </div>
-        <NavLink href="/app/settings" label="Profile & settings" pathname={pathname} />
+        <Link
+          href="/app/settings"
+          aria-current={isActive(pathname, "/app/settings") ? "page" : undefined}
+          className="flex items-center gap-3 rounded-[4px] px-3 py-2 hover:bg-surface"
+        >
+          <Avatar name={name} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[0.9375rem] font-medium">{name}</span>
+            <span className="block truncate font-mono text-[0.6875rem] text-ink-soft">
+              {area ?? "Set your area"} · {dietMode}
+            </span>
+          </span>
+        </Link>
       </div>
     </aside>
+  );
+}
+
+export function Avatar({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline bg-turmeric-tint font-semibold text-ink"
+    >
+      {name.trim()[0]?.toUpperCase() ?? "V"}
+    </span>
   );
 }

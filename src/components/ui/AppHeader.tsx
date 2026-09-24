@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { ModeTag } from "@/components/ui/ModeTag";
-import { user } from "@/lib/fixtures";
+import { Avatar } from "@/components/ui/Sidebar";
+import type { DietMode } from "@/lib/fixtures";
 
-/**
- * §4.1 context controls: selected location, diet mode, and the way into
- * secondary screens (More) and settings. Diet mode always renders through
- * ModeTag so vegetarian and vegan are never visually conflated.
- */
-export function AppHeader() {
+/** Phone/tablet header: brand, where you are, your diet mode, and the way to Me. */
+export function AppHeader({ name, area, dietMode }: { name: string; area: string | null; dietMode: DietMode }) {
   return (
     <header className="border-b border-hairline bg-paper lg:hidden">
-      <div className="mx-auto flex max-w-[480px] items-center justify-between gap-2 px-4 py-3 md:max-w-[720px] md:px-8">
+      <div className="mx-auto flex max-w-[480px] items-center justify-between gap-2 px-4 py-2 md:max-w-[720px] md:px-8">
         <Link href="/app" className="text-[1.125rem] font-semibold">
           Veggie
         </Link>
@@ -18,18 +15,13 @@ export function AppHeader() {
           <Link
             href="/app/settings#location"
             className="truncate font-mono text-[0.75rem] text-ink-soft underline-offset-4 hover:underline"
-            aria-label={`Location: ${user.area}, ${user.city}. Change in settings`}
+            aria-label={`Location: ${area ?? "not set"}. Change in settings`}
           >
-            {user.city} ▾
+            {area ?? "Set area"} ▾
           </Link>
-          <Link href="/app/settings#diet-mode" aria-label="Diet mode. Change in settings">
-            <ModeTag mode={user.dietMode} />
-          </Link>
-          <Link
-            href="/app/more"
-            className="rounded-[4px] border border-hairline bg-surface px-2.5 py-1.5 font-mono text-[0.6875rem] uppercase tracking-wide text-ink"
-          >
-            More
+          <ModeTag mode={dietMode} />
+          <Link href="/app/settings" aria-label="Me — profile and settings" className="flex h-11 w-11 items-center justify-center">
+            <Avatar name={name} />
           </Link>
         </div>
       </div>

@@ -20,6 +20,8 @@ export type PickInput = {
   spice: 'mild' | 'medium' | 'fiery'
   satisfactionAvg: number
   satisfactionCount: number
+  /** Needs an overnight soak or ferment — can't be made on the spot. */
+  planAhead?: boolean
 }
 
 export type PickProfile = {
@@ -74,8 +76,13 @@ export function rankPicks(
       const family = CUISINE_FAMILY[item.cuisine] ?? item.cuisine
       if (profile.cuisines.includes(family)) {
         score += 15
-        reasons.push({ weight: 15, text: `${item.cuisine} — close to the ${family} food you eat` })
+        reasons.push({
+          weight: 15,
+          text: family === item.cuisine ? `${item.cuisine}, the food you love` : `${item.cuisine} — part of the ${family} food you love`,
+        })
       }
+      // A pick is for the meal that's next; a dish that needed soaking last night can't be it.
+      if (item.planAhead) score -= 25
       if (item.protein === 'high') {
         score += 10
         reasons.push({ weight: 10, text: 'High protein, so it keeps you full' })
@@ -84,7 +91,8 @@ export function rankPicks(
         score += 5
         reasons.push({ weight: 5, text: `Ready in ${item.timeMinutes} min — within your cooking time` })
       } else {
-        score -= 10
+        // The further past the user's cooking time, the less it suits today.
+        score -= Math.min(30, 10 + (item.timeMinutes - profile.maxCookMinutes) / 2)
       }
       if (item.spice === profile.spice) {
         score += 5

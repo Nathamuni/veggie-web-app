@@ -23,9 +23,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
-        <aside aria-label="Prototype notice" className="bg-rust text-surface text-center py-1 text-[11px] font-mono tracking-wide">
-          PROTOTYPE — demo data throughout, except Discover places, which are real (OpenStreetMap)
-        </aside>
         {children}
       </body>
     </html>

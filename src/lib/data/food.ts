@@ -51,6 +51,7 @@ export function toPickInput(r: RecipeRow, ratings: Map<string, { avg: number; co
     // Unrated recipes sit at a neutral 4 so ranking is driven by fit, not noise.
     satisfactionAvg: rating?.avg ?? 4,
     satisfactionCount: rating?.count ?? 0,
+    planAhead: r.steps.some((s) => (s.timerMin ?? 0) > 60),
   }
 }
 

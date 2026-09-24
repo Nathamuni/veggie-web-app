@@ -2,7 +2,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First-time setup (Postgres + recipes):
+
+```bash
+cp .env.example .env.local   # then set AUTH_SECRET
+npm run db:up                # local Postgres/PostGIS in Docker
+npm run db:migrate
+npm run db:seed              # 40 reviewed recipes; safe to re-run
+```
+
+Then run the development server:
 
 ```bash
 npm run dev

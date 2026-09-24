@@ -80,3 +80,20 @@ describe('rankPicks learning signals', () => {
   })
 })
 
+
+describe('rankPicks plan-ahead dishes', () => {
+  it('ranks a dish that needs an overnight soak below one you can cook now', () => {
+    const soaked = item({ id: 'soaked', planAhead: true, protein: 'high' })
+    const now = item({ id: 'now' })
+    expect(rankPicks([soaked, now], profile, 'lunch', false)[0].item.id).toBe('now')
+  })
+})
+
+describe('rankPicks cooking time', () => {
+  it('prefers a dish within the time over a much longer one in the same cuisine', () => {
+    const quickProfile = { ...profile, maxCookMinutes: 30 }
+    const long = item({ id: 'a-long', timeMinutes: 55, protein: 'high', spice: 'fiery' })
+    const quick = item({ id: 'b-quick', timeMinutes: 20 })
+    expect(rankPicks([long, quick], quickProfile, 'lunch', false)[0].item.id).toBe('b-quick')
+  })
+})

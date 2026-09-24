@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PreviewNotice } from "@/components/ui/PreviewNotice";
 import Link from "next/link";
 import { SectionNav } from "@/app/partner/_components/SectionNav";
 import { AuditProvider } from "./_components/Audit";
@@ -24,6 +25,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AuditProvider>
       <div className="flex flex-1 flex-col">
+        <PreviewNotice />
         <header className="border-b border-hairline bg-paper">
           <div className="mx-auto flex max-w-[480px] flex-col gap-2 px-4 py-3 md:max-w-[960px] md:px-8 lg:max-w-[1200px]">
             <div className="flex items-center justify-between gap-2">

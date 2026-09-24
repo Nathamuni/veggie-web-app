@@ -95,3 +95,15 @@ export async function updateDisplayName(_: ProfileState, formData: FormData): Pr
   revalidatePath('/app', 'layout')
   return { saved: true }
 }
+
+/** One-tap goal change from the weekly summary. */
+export async function setWeeklyTarget(formData: FormData) {
+  const user = await requireUser()
+  const target = z.coerce.number().int().min(1).max(21).safeParse(formData.get('target'))
+  if (!target.success) return
+  await getDb()
+    .update(profiles)
+    .set({ weeklyPlantTarget: target.data, updatedAt: new Date() })
+    .where(eq(profiles.userId, user.id))
+  revalidatePath('/app', 'layout')
+}

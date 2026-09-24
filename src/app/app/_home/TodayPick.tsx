@@ -12,7 +12,7 @@ export type PickView = {
   reasons: string[];
 };
 
-/** The single best next action, with its reasons; "Show another" walks the ranked shortlist. */
+/** The single best next action, with its reasons; "Not this" walks the ranked shortlist. */
 export function TodayPick({ picks, slotLabel }: { picks: PickView[]; slotLabel: string }) {
   const [index, setIndex] = useState(0);
   const pick = picks[index];
@@ -49,7 +49,7 @@ export function TodayPick({ picks, slotLabel }: { picks: PickView[]; slotLabel: 
             Cook this
           </Button>
           <Button href="/app/discover" variant="secondary" className="md:min-w-[160px]">
-            Find it nearby
+            Eat out instead
           </Button>
           {picks.length > 1 ? (
             <button
@@ -57,7 +57,7 @@ export function TodayPick({ picks, slotLabel }: { picks: PickView[]; slotLabel: 
               onClick={() => setIndex((i) => (i + 1) % picks.length)}
               className="col-span-2 min-h-11 text-[0.875rem] text-ink underline underline-offset-4 md:col-span-1 md:px-3"
             >
-              Show another
+              Not this — show another
             </button>
           ) : null}
         </div>
